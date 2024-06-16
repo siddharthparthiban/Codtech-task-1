@@ -1,8 +1,13 @@
 Name: P SIDDHARTH
+
 Company: CODTECH IT SOLUTIONS
+
 ID: CT08DS2040
+
 Domain: JAVA
+
 Duration: 10TH JUNE TO 10TH JULY
+
 Mentor: MUZAMMIL
 
 Overview of the Online Banking System Project:
