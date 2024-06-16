@@ -1,0 +1,220 @@
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
+abstract class LibraryItem implements Serializable {
+    private String title;
+    private String author;
+    private String category;
+    private boolean isAvailable;
+
+    public LibraryItem(String title, String author, String category) {
+        this.title = title;
+        this.author = author;
+        this.category = category;
+        this.isAvailable = true;
+    }
+
+    public String getTitle() { return title; }
+    public String getAuthor() { return author; }
+    public String getCategory() { return category; }
+    public boolean isAvailable() { return isAvailable; }
+    public void setAvailable(boolean available) { isAvailable = available; }
+
+    
+    public String toString() {
+        return "Title: " + title + ", Author: " + author + ", Category: " + category + ", Available: " + isAvailable;
+    }
+}
+
+class Book extends LibraryItem {
+    public Book(String title, String author, String category) {
+        super(title, author, category);
+    }
+}
+
+class Magazine extends LibraryItem {
+    public Magazine(String title, String author, String category) {
+        super(title, author, category);
+    }
+}
+
+class DVD extends LibraryItem {
+    public DVD(String title, String author, String category) {
+        super(title, author, category);
+    }
+}
+
+abstract class User implements Serializable {
+    private String name;
+
+    public User(String name) {
+        this.name = name;
+    }
+
+    public String getName() { return name; }
+    public abstract String getRole();
+}
+
+class Librarian extends User {
+    public Librarian(String name) {
+        super(name);
+    }
+
+    @Override
+    public String getRole() {
+        return "Librarian";
+    }
+}
+
+class Patron extends User {
+    public Patron(String name) {
+        super(name);
+    }
+
+    
+    public String getRole() {
+        return "Patron";
+    }
+}
+
+class Library {
+    private List<LibraryItem> items;
+    private List<User> users;
+
+    public Library() {
+        items = new ArrayList<>();
+        users = new ArrayList<>();
+    }
+
+    public void addItem(LibraryItem item) {
+        items.add(item);
+    }
+
+    public void addUser(User user) {
+        users.add(user);
+    }
+
+    public List<LibraryItem> getItems() {
+        return items;
+    }
+
+    public List<User> getUsers() {
+        return users;
+    }
+
+    public List<LibraryItem> searchItems(String query, String type) {
+        List<LibraryItem> results = new ArrayList<>();
+        for (LibraryItem item : items) {
+            if (type.equalsIgnoreCase("title") && item.getTitle().toLowerCase().contains(query.toLowerCase())) {
+                results.add(item);
+            } else if (type.equalsIgnoreCase("author") && item.getAuthor().toLowerCase().contains(query.toLowerCase())) {
+                results.add(item);
+            } else if (type.equalsIgnoreCase("category") && item.getCategory().toLowerCase().contains(query.toLowerCase())) {
+                results.add(item);
+            }
+        }
+        return results;
+    }
+}
+
+class FileHandler {
+    public static void saveItemsToFile(List<LibraryItem> items, String fileName) throws IOException {
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(fileName))) {
+            out.writeObject(items);
+        }
+    }
+
+    public static List<LibraryItem> loadItemsFromFile(String fileName) throws IOException, ClassNotFoundException {
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(fileName))) {
+            return (List<LibraryItem>) in.readObject();
+        }
+    }
+
+    public static void saveUsersToFile(List<User> users, String fileName) throws IOException {
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(fileName))) {
+            out.writeObject(users);
+        }
+    }
+
+    public static List<User> loadUsersFromFile(String fileName) throws IOException, ClassNotFoundException {
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(fileName))) {
+            return (List<User>) in.readObject();
+        }
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Library library = new Library();
+        Scanner scanner = new Scanner(System.in);
+
+        
+        try {
+            List<LibraryItem> items = FileHandler.loadItemsFromFile("libraryItems.dat");
+            for (LibraryItem item : items) {
+                library.addItem(item);
+            }
+            List<User> users = FileHandler.loadUsersFromFile("users.dat");
+            for (User user : users) {
+                library.addUser(user);
+            }
+        } catch (Exception e) {
+            System.out.println("No previous data found. Starting fresh.");
+        }
+
+        while (true) {
+            System.out.println("1. Add item\n2. Search item\n3. Exit");
+            int choice = scanner.nextInt();
+            scanner.nextLine(); 
+
+            switch (choice) {
+                case 1:
+                    System.out.println("Enter item type (book, magazine, dvd):");
+                    String type = scanner.nextLine();
+                    System.out.println("Enter title:");
+                    String title = scanner.nextLine();
+                    System.out.println("Enter author:");
+                    String author = scanner.nextLine();
+                    System.out.println("Enter category:");
+                    String category = scanner.nextLine();
+
+                    LibraryItem item;
+                    if (type.equalsIgnoreCase("book")) {
+                        item = new Book(title, author, category);
+                    } else if (type.equalsIgnoreCase("magazine")) {
+                        item = new Magazine(title, author, category);
+                    } else {
+                        item = new DVD(title, author, category);
+                    }
+
+                    library.addItem(item);
+                    System.out.println("Item added successfully.");
+                    break;
+                case 2:
+                    System.out.println("Enter search query:");
+                    String query = scanner.nextLine();
+                    System.out.println("Search by (title, author, category):");
+                    String searchType = scanner.nextLine();
+                    List<LibraryItem> results = library.searchItems(query, searchType);
+                    for (LibraryItem result : results) {
+                        System.out.println(result);
+                    }
+                    break;
+                case 3:
+                    
+                    try {
+                        FileHandler.saveItemsToFile(library.getItems(), "libraryItems.dat");
+                        FileHandler.saveUsersToFile(library.getUsers(), "users.dat");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    System.exit(0);
+                    break;
+                default:
+                    System.out.println("Invalid choice.");
+            }
+        }
+    }
+}
